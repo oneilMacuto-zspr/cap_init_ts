@@ -1,7 +1,8 @@
 const { randomUUID } = require('crypto');
+const constants = require("./constants")
 
 const cds = require("@sap/cds");
-const { getCurrentTime, formatHrTimeToHHMMSS } = require("../helpers")
+const { getCurrentTime, formatHrTimeToHHMMSS } = require("./helper")
 type ExecutionType = {
     uuid: ReturnType<typeof randomUUID>
     start: ReturnType<typeof process.hrtime> 
@@ -9,10 +10,10 @@ type ExecutionType = {
 const arrExecutionKeys: Array<ExecutionType> = [];
 
 // logger for Execution Start Time
-function logStartTime(moduleName: string, serviceName: string, functionName: string = "") {
-    const LOG = cds.log(moduleName, "INFO")
-    const fnName : string = functionName ? ` - ${functionName}` : "";
-    LOG.info(`${serviceName}${fnName} - Execution Start Time: ${getCurrentTime()}`)
+function logStartTime(moduleName: string, serviceName: string, functionName: string = constants.BLANK) {
+    const LOG = cds.log(moduleName, constants.LOG_LEVEL)
+    const fnName : string = functionName ? ` - ${functionName}` : constants.BLANK;
+    LOG.info(`${serviceName}${fnName}${constants.EXEC_TIME}${getCurrentTime()}`)
     const uuid: ReturnType<typeof randomUUID> = randomUUID();
     const start: ReturnType<typeof process.hrtime>  = process.hrtime(); // start timer
     arrExecutionKeys.push({uuid, start}); // store start time with key
@@ -20,14 +21,14 @@ function logStartTime(moduleName: string, serviceName: string, functionName: str
 }
 
 // logger for Execution End Time and Total Time Taken
-function logEndTime(moduleName: string, serviceName: string, uuid: ReturnType<typeof randomUUID>, functionName: string = "") {
-    const LOG = cds.log(moduleName, "INFO")
+function logEndTime(moduleName: string, serviceName: string, uuid: ReturnType<typeof randomUUID>, functionName: string = constants.BLANK) {
+    const LOG = cds.log(moduleName, constants.LOG_LEVEL)
     const start = arrExecutionKeys.find((r) => r.uuid === uuid)?.start // get start time from key
     const timeDiff = process.hrtime(start)
-    const timeTaken: string = formatHrTimeToHHMMSS(timeDiff)
-    const fnName : string = functionName ? ` - ${functionName}` : "";
-    LOG.info(`${serviceName}${fnName} - Execution End Time: ${getCurrentTime()}`)
-    LOG.info(`${serviceName}${fnName} - Total Time Taken to Complete Processing: ${timeTaken}`)
+    const timeTaken: string = formatHrTimeToHHMMSS(timeDiff);
+    const fnName : string = functionName ? ` - ${functionName}` : constants.BLANK;
+    LOG.info(`${serviceName}${fnName}${constants.EXEC_TIME}${getCurrentTime()}`)
+    LOG.info(`${serviceName}${fnName}${constants.TOTAL_TIME_TAKEN}${timeTaken}`)
     
     deleteExecutionKey(uuid) // remove used uuid
 }
@@ -42,13 +43,13 @@ function logGetAPICallStartKey() {
 
 // logger for API Call Response
 function logAPIResponse(moduleName: string, serviceName: string, functionName: string, uuid: ReturnType<typeof randomUUID>, url: string, jsonBody: string, resStatus: number, jsonResponse: string) {
-    const LOG = cds.log(moduleName, "INFO")
+    const LOG = cds.log(moduleName, constants.LOG_LEVEL)
     const start = arrExecutionKeys.find((r) => r.uuid === uuid)?.start // get start time from key
     const timeDiff = process.hrtime(start)
     const timeTaken: string = formatHrTimeToHHMMSS(timeDiff)
-    const fnName : string = functionName ? ` - ${functionName}` : "";
+    const fnName : string = functionName ? ` - ${functionName}` : constants.BLANK;
     const logDetails = {
-        "log": `${serviceName}${fnName} - API Call Execution Successful:`,
+        "log": `${serviceName}${fnName}${constants.API_EXEC_SUCCESS}`,
         "Request URL": url,
         "Request Body": jsonBody,
         "Response Status Code": resStatus,
@@ -62,13 +63,13 @@ function logAPIResponse(moduleName: string, serviceName: string, functionName: s
 
 // logger for API Call Error
 function logAPIError(moduleName: string, serviceName: string, functionName: string, uuid: ReturnType<typeof randomUUID>, url: string, jsonBody: string, errStatus: number, jsonErrMessage: string) {
-    const LOG = cds.log(moduleName, "INFO")
+    const LOG = cds.log(moduleName, constants.LOG_LEVEL)
     const start = arrExecutionKeys.find((r) => r.uuid === uuid)?.start // get start time from key
     const timeDiff = process.hrtime(start)
     const timeTaken: string = formatHrTimeToHHMMSS(timeDiff)
-    const fnName : string = functionName ? ` - ${functionName}` : "";
+    const fnName : string = functionName ? ` - ${functionName}` : constants.BLANK;
     const logDetails = {
-        "log": `${serviceName}${fnName} - API Call Execution Failed:`,
+        "log": `${serviceName}${fnName}${constants.API_EXEC_FAILED}`,
         "Request URL": url,
         "Request Body": jsonBody,
         "Error Status Code": errStatus,
